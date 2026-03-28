@@ -1,384 +1,226 @@
-import { FlatList, View } from "react-native";
 import { useEffect, useState } from "react";
-import {List, TouchableRipple, TextInput, Text, Menu} from 'react-native-paper';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { FlatList, Image, StyleSheet, View } from "react-native";
+import { FAB, List, PaperProvider, Text, TextInput } from "react-native-paper";
+// CAMBIO: Importación del componente modal hijo.
+import Agregar from "../../Modal/Agregar";
 
-
-export default function Alumnos(){
-  
+export default function Alumnos() {
   const [alumnos, setAlumnos] = useState([]);
-  
-  const [buscaAlumno, onChangeAlumno] = useState('');
-  
-  const alumnosFiltrados = alumnos.filter(alumno => (alumno.nombre + ' ' + alumno.apellido).toLowerCase().includes(buscaAlumno.toLowerCase())); 
-  
-  const [ordenarAlumnos, setOrdenarAlumnos] = useState([]);
-  
-  const [expanded, setExpanded] = useState(true);
+  const [buscaAlumno, setBuscaAlumno] = useState("");
 
-  const handlePress = () => setExpanded(!expanded);
+  // CAMBIO: Estado para controlar si el modal está visible o no.
+  // PARA QUÉ: Se pasa como prop al hijo 'Agregar' para abrirlo/cerrarlo.
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const ordenarNombreAZ = () => {
-    const nuevosAlumnos = [...alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre));
-    setOrdenarAlumnos(nuevosAlumnos);
-    setAlumnos(nuevosAlumnos);
+  // Estado para rastrear qué alumno fue seleccionado (para cambiar color)
+  const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
 
-    console.log(nuevosAlumnos)
+  //validar que no hay alumnos duplicados por nombre o matricula
+  /*√
+  alumnos.forEach((alumno) => {
+    console.log(`Alumno: ${alumno.nombre}, Matrícula: ${alumno.matricula}`)
+    const alumnoDuplicado = alumnos.find(
+      (a) =>
+        a !== alumno &&
+        (a.nombre === alumno.nombre || a.matricula === alumno.matricula)
+    );
+    if (alumnoDuplicado) {
+      console.log(`❌ Error: Ya existe un alumno con el nombre "${alumnoDuplicado.nombre}" o matrícula "${alumnoDuplicado.matricula}"`);
+    }else {
+      return false;
+    }
+  });
+*/
 
-    handlePress();
+  const ValidarAlumnos = (Alumnonuevo) => {
+    const alumnoEncontrado = alumnos.find(
+      (alumno) =>
+        alumno.nombre === Alumnonuevo.nombre ||
+        alumno.matricula === Alumnonuevo.matricula,
+    );
+    if (alumnoEncontrado) {
+      console.log("Alumno duplicado: ", alumnoEncontrado);
+      return true;
+    }
+    console.log("Alumno nuevo: ", Alumnonuevo);
+    return false;
+  };
+
+  // Función para generar URL de avatar aleatoria y consistente
+  const generarAvatarUrl = (matricula) => {
+    const estilos = [
+      "avataaars",
+      "big-ears",
+      "big-smile",
+      "croodles",
+      "fun-emoji",
+      "pixel-art",
+      "lorelei",
+      "micah",
+    ];
+    const estilo = estilos[parseInt(matricula) % estilos.length];
+    return `https://api.dicebear.com/7.x/${estilo}/svg?seed=${matricula}`;
+  };
+
+  useEffect(() => {
+    // Simulación de carga inicial de datos
+    setTimeout(() => {
+      setAlumnos([
+        { nombre: "CANDELARIA MORA SAMANTHA", matricula: "2114354" },
+        { nombre: "CANTU SILVA JAVIER", matricula: "2111889" },
+        { nombre: "CARMONA LOZANO ANGEL EMILIANO", matricula: "2069119" },
+        { nombre: "CASTILLO ACOSTA JORGE", matricula: "2132842" },
+        { nombre: "DAVILA GONZALEZ ALDO ADRIAN", matricula: "1994122" },
+        { nombre: "DURAN BARRIENTOS FABRIZIO", matricula: "2018230" },
+        { nombre: "FLORES GONZALEZ SEBASTIAN", matricula: "21045641" },
+        { nombre: "DURAN BARRIENTOS FABRIZIO", matricula: "20182301" },
+        { nombre: "FLORES GONZALEZ SEBASTIAN", matricula: "2104564" },
+        { nombre: "FLORES LÓPEZ DIEGO", matricula: "2066033" },
+        { nombre: "FLORES MARTINEZ ERICK ADRIAN", matricula: "2132976" },
+        { nombre: "GARZA AVALOS DIEGO", matricula: "2066114" },
+        { nombre: "GONZALEZ OVALLE CHRISTIAN GABRIEL", matricula: "2031243" },
+        { nombre: "GRANJA PEÑA DIEGO", matricula: "20647331" },
+        { nombre: "IBARRA RODRIGUEZ ALEXIS", matricula: "20312431" },
+        { nombre: "MARTINEZ ELIAS ANGEL SEBASTIAN", matricula: "2064733" },
+        {
+          nombre: "MENDIETA GONZALEZ ESMERALDA GABRIELA",
+          matricula: "2094647",
+        },
+        { nombre: "MIRELES VELAZQUEZ ALEJANDRO", matricula: "2005102" },
+        { nombre: "MONSIVAIS SALAZAR ANDRES", matricula: "2064574" },
+        {
+          nombre: "PARRAZALEZ VALDESPINO MARTHA JULIETA",
+          matricula: "2024783",
+        },
+        { nombre: "PEÑA MUNGARRO LUIS ANGEL", matricula: "2066077" },
+        { nombre: "PUENTE REYNOSO JULIO CESAR", matricula: "2092151" },
+        { nombre: "RAMIREZ LOPEZ BRYAN", matricula: "2103708" },
+        { nombre: "RAMOS AVILA LILIANA VALERIA", matricula: "2115192" },
+        { nombre: "RICO JAUREGUI MAURICIO", matricula: "2037503" },
+        { nombre: "RIVERA LUNA ADRIAN", matricula: "2131513" },
+        { nombre: "RIVERA REYNA JOSE EMILIO", matricula: "2013503" },
+        { nombre: "RODRIGUEZ OLVERA ROSA ISELA", matricula: "2004613" },
+        { nombre: "RODRIGUEZ RODRIGUEZ ANGEL AZAEL", matricula: "2133022" },
+        { nombre: "SANCHEZ GALARZA JUAN CARLOS", matricula: "2026061" },
+        { nombre: "SOLIS ORTIZ ALFREDO", matricula: "2095320" },
+        { nombre: "VELAZQUEZ ABREGO HERWIN DANIEL", matricula: "2025350" },
+        { nombre: "VILLAGRA RODRIGUEZ ANDRES NEHUEL", matricula: "2103895" },
+        { nombre: "ZACATENCO OLIVE RODRIGO", matricula: "1857791" },
+        { nombre: "ZAVALA CANTU TERESA MARGARITA", matricula: "2025218" },
+      ]);
+    }, 2000);
+  }, []);
+
+  // CAMBIO: Función para añadir un nuevo alumno al arreglo.
+  // PARA QUÉ: Se envía al hijo 'Agregar' para que este pueda actualizar la lista del padre.
+
+  const handleAddAlumno = (nuevoAlumno) => {
+    if (ValidarAlumnos(nuevoAlumno)) {
+      console.log(
+        `❌ Error: Ya existe un alumno con el nombre "${nuevoAlumno.nombre}" o matrícula "${nuevoAlumno.matricula}"`,
+      );
+    } else {
+      setAlumnos([...alumnos, nuevoAlumno]);
+      console.log(`✅ Alumno "${nuevoAlumno.nombre}" agregado exitosamente`);
+    }
+  };
+
+  const alumnosFiltrados = alumnos.filter(
+    (alumno) =>
+      alumno.nombre.toLowerCase().includes(buscaAlumno.toLowerCase()) ||
+      alumno.matricula.includes(buscaAlumno),
+  );
+
+  if (!alumnos.length) {
+    return (
+      <PaperProvider>
+        <Text style={{ padding: 20 }}>Cargando alumnos...</Text>
+        {/* FAB incluso en carga para poder agregar alumnos manualmente si se desea */}
+        <FAB
+          icon="plus"
+          style={styles.fab}
+          onPress={() => setModalVisible(true)}
+        />
+        <Agregar
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onAdd={handleAddAlumno}
+        />
+      </PaperProvider>
+    );
   }
+  return (
+    <PaperProvider>
+      <View style={{ flex: 1 }}>
+        <TextInput
+          label="Buscar alumno"
+          value={buscaAlumno}
+          onChangeText={(text) => setBuscaAlumno(text)}
+          style={{ margin: 10 }}
+        />
 
-  const ordenarApellidoAZ = () => {
-    
-    const nuevosAlumnos = [...alumnos].sort((a, b) => a.apellido.localeCompare(b.apellido));
-    setOrdenarAlumnos(nuevosAlumnos);
-    setAlumnos(nuevosAlumnos);
+        <FlatList
+          data={alumnosFiltrados}
+          keyExtractor={(item) => item.matricula}
+          renderItem={({ item }) => {
+            const esSeleccionado = alumnoSeleccionado === item.matricula;
+            return (
+              <List.Item
+                title={item.nombre}
+                description={item.matricula}
+                left={(props) => (
+                  <Image
+                    source={{ uri: generarAvatarUrl(item.matricula) }}
+                    style={{ width: 40, height: 40, borderRadius: 20 }}
+                  />
+                )}
+                onPress={() =>
+                  setAlumnoSeleccionado(esSeleccionado ? null : item.matricula)
+                }
+                titleStyle={{
+                  color: esSeleccionado ? "#9f2d2d" : "#1F2937",
+                  fontWeight: esSeleccionado ? "bold" : "normal",
+                  fontSize: esSeleccionado ? 16 : 14,
+                }}
+                descriptionStyle={{
+                  color: esSeleccionado ? "#110f0f" : "#111214",
+                }}
+                style={{
+                  backgroundColor: esSeleccionado ? "#d2a5a5" : "transparent",
+                }}
+              />
+            );
+          }}
+        />
 
-    console.log(nuevosAlumnos);
-    handlePress();
-  }
+        {/* CAMBIO: Botón Flotante (FAB) para abrir el modal */}
+        <FAB
+          icon="plus"
+          label="Nuevo"
+          style={styles.fab}
+          onPress={() => setModalVisible(true)}
+        />
 
-  useEffect(()=> {
-    setTimeout(()=>{
-      setAlumnos([{
-        
-        nombre: 'SAMANTHA',
-        apellido: 'CANDELARIA MORA',
-        matricula: '2114354'
-        
-      },
-      
-      {
-        
-        nombre: 'JAVIER',
-        apellido: 'CANTU SILVA',
-        matricula: '2111889'
-        
-      },
-      
-      {
-        
-        nombre: 'ANGEL EMILIANO',
-        apellido: 'CARMONA LOZANO',
-        matricula: '2069119'
-        
-      },
-      
-      {
-        
-        nombre: 'JORGE',
-        apellido: 'CASTILLO ACOSTA',
-        matricula: '2132842'
-        
-      },
-      
-      {
-        
-        nombre: 'ALDO ADRIAN',
-        apellido: 'DAVILA GONZALEZ',
-        matricula: '1994122'
-        
-      },
-      
-      {
-        
-        nombre: 'FABRIZIO',
-        apellido: 'DURAN BARRIENTOS',
-        matricula: '2018230'
-        
-      },
-      
-      {
-        
-        nombre: 'SEBASTIAN',
-        apellido: 'FLORES GONZALEZ',
-        matricula: '21045641'
-        
-      },
-      
-      {
-        
-        nombre: 'FABRIZIO',
-        apellido: 'DURAN BARRIENTOS',
-        matricula: '20182301'
-        
-      },
-      
-      {
-        
-        nombre: 'SEBASTIAN',
-        apellido: 'FLORES GONZALEZ',
-        matricula: '2104564'
-        
-      },
-      
-      {
-        
-        nombre: 'DIEGO',
-        apellido: 'FLORES LÓPEZ',
-        matricula: '2066033'
-        
-      },
-      
-      {
-        
-        nombre: 'ERICK ADRIAN',
-        apellido: 'FLORES MARTINEZ',
-        matricula: '2132976'
-        
-      },
-      
-      {
-        
-        nombre: 'DIEGO',
-        apellido: 'GARZA AVALOS',
-        matricula: '2066114'
-        
-      },
-      
-      {
-        
-        nombre: 'CHRISTIAN GABRIEL',
-        apellido: 'GONZALEZ OVALLE',
-        matricula: '2031243'
-        
-      },
-      
-      {
-        
-        nombre: 'DIEGO',
-        apellido: 'GRANJA PEÑA',
-        matricula: '20647331'
-        
-      },
-      
-      {
-        
-        nombre: 'ALEXIS',
-        apellido: 'IBARRA RODRIGUEZ',
-        matricula: '20312431'
-        
-      },
-      
-      {
-        
-        nombre: 'SEBASTIAN',
-        apellido: 'MARTINEZ ELIAS ANGEL',
-        matricula: '2064733'
-        
-      },
-      
-      {
-        
-        nombre: 'ESMERALDA GABRIELA',
-        apellido: 'MENDIETA GONZALEZ',
-        matricula: '2094647'
-        
-      },
-      
-      {
-        
-        nombre: 'ALEJANDRO',
-        apellido: 'MIRELES VELAZQUEZ',
-        matricula: '2005102'
-        
-      },
-      
-      {
-        
-        nombre: 'ANDRES',
-        apellido: 'MONSIVAIS SALAZAR',
-        matricula: '2064574'
-        
-      },
-      
-      {
-        
-        nombre: 'MARTHA JULIETA',
-        apellido: 'PARRAZALEZ VALDESPINO',
-        matricula: '2024783'
-        
-      },
-      
-      {
-        
-        nombre: 'LUIS ANGEL',
-        apellido: 'PEÑA MUNGARRO',
-        matricula: '2066077'
-        
-      },
-      
-      {
-        
-        nombre: 'JULIO CESAR',
-        apellido: 'PUENTE REYNOSO',
-        matricula: '2092151'
-        
-      },
-      
-      {
-        
-        nombre: 'BRYAN',
-        apellido: 'RAMIREZ LOPEZ',
-        matricula: '2103708'
-        
-      },
-      
-      {
-        
-        nombre: 'LILIANA VALERIA',
-        apellido: 'RAMOS AVILA',
-        matricula: '2115192'
-        
-      },
-      
-      {
-        
-        nombre: 'MAURICIO',
-        apellido: 'RICO JAUREGUI',
-        matricula: '2037503'
-        
-      },
-      
-      {
-        
-        nombre: 'ADRIAN',
-        apellido: 'RIVERA LUNA',
-        matricula: '2131513'
-        
-      },
-      
-      {
-        
-        nombre: 'JOSE EMILIO',
-        apellido: 'RIVERA REYNA',
-        matricula: '2013503'
-        
-      },
-      
-      {
-        
-        nombre: 'ROSA ISELA',
-        apellido: 'RODRIGUEZ OLVERA',
-        matricula: '2004613'
-        
-      },
-      
-      {
-        
-        nombre: 'ANGEL AZAEL',
-        apellido: 'RODRIGUEZ RODRIGUEZ',
-        matricula: '2133022'
-        
-      },
-      
-      {
-        
-        nombre: 'JUAN CARLOS',
-        apellido: 'SANCHEZ GALARZA',
-        matricula: '2026061'
-        
-      },
-      
-      {
-        
-        nombre: 'ALFREDO',
-        apellido: 'SOLIS ORTIZ',
-        matricula: '2095320'
-        
-      },
-      
-      {
-        
-        nombre: 'HERWIN DANIEL',
-        apellido: 'VELAZQUEZ ABREGO',
-        matricula: '2025350'
-        
-      },
-      
-      {
-        
-        nombre: 'ANDRES NEHUEL',
-        apellido: 'VILLAGRA RODRIGUEZ',
-        matricula: '2103895'
-        
-      },
-      
-      {
-        
-        nombre: 'RODRIGO',
-        apellido: 'ZACATENCO OLIVE',
-        matricula: '1857791'
-        
-      },
-      
-      {
-        
-        nombre: 'TERESA MARGARITA',
-        apellido: 'ZAVALA CANTU',
-        matricula: '2025218'
-        
-      }
-    ])
-    
-  }, 2000)
-  
-  
-}, []);
-
-if(!alumnos.length){
-  return(
-    <Text>Cargando alumnos...</Text>
-  )
-}
-if(alumnos.length ===0 ){
-  return(
-    <Text> No hay alumnos</Text>
-  )
+        {/* CAMBIO: Integración del componente hijo Agregar */}
+        {/* PARA QUÉ: Gestionar la creación de nuevos alumnos mediante el modal de Paper */}
+        <Agregar
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onAdd={handleAddAlumno}
+          //onAdd pasa
+        />
+      </View>
+    </PaperProvider>
+  );
 }
 
-return(
-  
-  //Op 1
-  
-  
-  // <TextInput placeholder="hola..."></TextInput> de React native y <TextInput> de Paper no se pueden usar juntos
-  <>
-  
-  
-  <Text variant="labelMedium">Busca por nombre:</Text>
-  <TextInput
-  placeholder="ejemplo: David Garza"
-  mode="outlined" 
-  onChangeText={(text)=>onChangeAlumno(text)}
-  value={buscaAlumno}
-  right={<TextInput.Icon icon="magnify" />}></TextInput>
-  
-   <List.Section title="Ordenar" expanded={expanded} onPress={handlePress}>
-      <List.Accordion
-        title="Ordenar"
-        left={props => <List.Icon {...props} icon="sort" />}>
-        <List.Item title="Nombre: AZ" onPress={ordenarNombreAZ}/>
-        <List.Item title="Apellido: AZ" onPress={ordenarApellidoAZ} />
-      </List.Accordion>
+const styles = StyleSheet.create({
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+  },
+});
 
-     
-    </List.Section>
-  
-  <FlatList
-  data={ordenarAlumnos.length ? ordenarAlumnos : alumnosFiltrados}
-  keyExtractor={(item) => item.matricula}
-  renderItem={({ item }) => (
-    <>
-    
-    <List.Item title={`${item.nombre} ${item.apellido}`} description={item.matricula} left={props => <MaterialIcons name="account-circle" size={40}></MaterialIcons>}></List.Item>
-    </>
-  )} />
-  </>
-  
-  //Op 2: Map sin FlatList
-  // alumnos.map((alumno) => (
-    //     <List.Item key={alumno.matricula} title={alumno.nombre} left={props => <MaterialIcons name="account-circle" size={40}></MaterialIcons>}></List.Item>
-  // ))
-)
-}
+// validar que no hay aliumnos duplicados por nombre o matricula

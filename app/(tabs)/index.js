@@ -1,8 +1,5 @@
-
-import {Text} from 'react-native';
+import { Text } from "react-native";
 
 export default function Index() {
- return(
-    <Text>Indez</Text>
- )
+  return <Text>Indez</Text>;
 }
